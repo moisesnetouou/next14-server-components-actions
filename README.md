@@ -2,6 +2,11 @@
 
 Agora é possível fazer requisições com Next.js 14
 
+```bash
+API: npx json-server server.json -p 3333 --watch
+RUN: npm run dev
+```
+
 ```tsx
 export async function Tags(){
   await new Promise(resolve => setTimeout(resolve, 3000))
@@ -123,7 +128,7 @@ export async function Tags(){
 }
 ```
 
-Ele possui uma `Promise` pra simular um carregamento, mas, até o momento ele não possui um Loading para ele, mas, podemos usar o Suspense Api do React.js para isso
+Para simular um loading podemos usar o Suspense Api do React.js para isso
 
 ```tsx
 <Suspense fallback={<p>Carregando tags...</p>}>
@@ -144,3 +149,9 @@ https://nextjs.org/docs/app/building-your-application/rendering/client-component
 https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations
 
 https://react.dev/reference/react/Suspense
+
+# **DOIS conceitos p criar um app ReactNext mais performático (cache & deduplicação)**
+
+Quando realizamos solicitações HTTPS no Next.js, elas são cacheadas por padrão. No entanto, suponhamos que haja uma funcionalidade que, por padrão, não é cacheada e precisamos implementar o cache para ela.
+
+A deduplicação é um conceito presente no React, diferentemente do cache que encontramos no Next.js. O cache é a prática de armazenar uma cópia da solicitação para uso futuro quando o usuário retornar e precisar dela novamente. Por outro lado, a deduplicação no React ocorre quando dois componentes necessitam dos mesmos dados; nesse caso, o React não busca os dados duas vezes, mas os fornece aos dois componentes que necessitam deles.

@@ -1,14 +1,10 @@
+import { getTags } from "@/api"
+import { unstable_noStore } from "next/cache"
+
 export async function Tags(){
-  await new Promise(resolve => setTimeout(resolve, 3000))
+  unstable_noStore()
 
-  const response = await fetch("http://localhost:3333/tags", {
-    next: {
-      tags: ["get-tags"]
-    }
-  })
-  const data = await response.json()
-
-  console.log(data)
+  const data = await getTags()
 
   return(
     <ul>
