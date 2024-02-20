@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next.js 14 - Server Components & Actions
 
-## Getting Started
+Agora é possível fazer requisições com Next.js 14
 
-First, run the development server:
+```tsx
+export async function Tags(){
+  await new Promise(resolve => setTimeout(resolve, 3000))
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+  const response = await fetch("http://localhost:3333/tags", {
+    next: {
+      tags: ["get-tags"]
+    }
+  })
+  const data = await response.json()
+
+  console.log(data)
+
+  return(
+    <ul>
+      {data.map((item: any) => <li key={item.id}>{item.slug}</li>)}
+    </ul>
+  )
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O `new Promise` é apenas para simular os 3 segundos de carregamento de tags no primeiro momento do acesso do cliente.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Dentro do response daquele `next` vai servir para determinar uma espécie de id para a requisição, porque agora ele tem cache, e precisamos desse id para revalidar ela futuramente.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Esse `Server Component`ajuda bastante na hora de dizer o que vai ser renderizado pelo lado do servidor ou não, e com isso ganhamos certa performance, um certo ganho de tempo pelo fato desses dados estarem mais próximos do servidor.
 
-## Learn More
+E com isso, também podemos utilizar uma `Server Action`
 
-To learn more about Next.js, take a look at the following resources:
+```tsx
+import { revalidateTag } from "next/cache"
+import { AddTagButton } from "./add-tag-button"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export async function AddTag(){
+  async function handleCreateTag(form: FormData){
+    "use server"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+    const slug = form.get("slug")
 
-## Deploy on Vercel
+    if(!slug){
+      return
+    }
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    await new Promise(resolve => setTimeout(resolve, 3000))
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+    await fetch("http://localhost:3333/tags", {
+      method: "POST",
+      body: JSON.stringify({
+        slug
+      })
+    })
+
+    revalidateTag("get-tags")
+  }
+  
+  return(
+    <form action={handleCreateTag}>
+      <input 
+        type="text" 
+        name="slug" 
+        placeholder="Slug da tag" 
+        className="placeholder:text-slate-950 text-slate-800"
+      />
+      
+      <AddTagButton />
+    </form>
+  )
+}
+```
+
+Neste componente, não utilizamos nada que seja renderizado pelo lado do client (exceto o AddTagButton, mas, ele já está sendo tratado dentro de seu componente), com o `“use server”` vamos incorporar uma ação do servidor.
+
+Neste exemplo, apenas estamos salvando novas slugs, e o `revalidateTag` que vem do `next/cache` vai servir para revalidar nossa requisição, para que tenha um novo carregamento de tela e liste nossas novas tags.
+
+Separamos o `AddTagButton`para adicionar uma condição dentro dele, uma condição para deixar ele desabilitado quando for feito a requisição e que seja mostrado em tela
+
+```tsx
+"use client"
+
+import { useFormStatus } from "react-dom"
+
+export function AddTagButton(){
+  const { pending } = useFormStatus()
+  
+  return(
+    <button type="submit" disabled={pending}>
+      {pending ? "Carregando..." : "Salvar tag"}
+    </button>
+  )
+}
+```
+
+Atualmente no dia 20/02/2024 o hook do React.js chamado de useFormStatus está experimental, mas, ele fornece informações de status do último envio do formulário.
+
+```bash
+const { pending, data, method, action } = useFormStatus();
+```
+
+Voltando ao componente de Tags
+
+```tsx
+export async function Tags(){
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
+  const response = await fetch("http://localhost:3333/tags", {
+    next: {
+      tags: ["get-tags"]
+    }
+  })
+  const data = await response.json()
+
+  console.log(data)
+
+  return(
+    <ul>
+      {data.map((item: any) => <li key={item.id}>{item.slug}</li>)}
+    </ul>
+  )
+}
+```
+
+Ele possui uma `Promise` pra simular um carregamento, mas, até o momento ele não possui um Loading para ele, mas, podemos usar o Suspense Api do React.js para isso
+
+```tsx
+<Suspense fallback={<p>Carregando tags...</p>}>
+  <Tags />
+</Suspense>
+```
+
+Com o fallback, podemos renderizar o que quisermos enquanto ele tem o primeiro carregamento
+
+## Links para estudo
+
+https://react.dev/reference/react-dom/hooks/useFormStatus
+
+https://nextjs.org/docs/app/building-your-application/rendering/server-components
+
+https://nextjs.org/docs/app/building-your-application/rendering/client-components
+
+https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations
+
+https://react.dev/reference/react/Suspense
