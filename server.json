@@ -1,0 +1,40 @@
+{
+  "tags": [
+    {
+      "slug": "react",
+      "id": "8872"
+    },
+    {
+      "slug": "next",
+      "id": "9638"
+    },
+    {
+      "slug": "tailwind",
+      "id": "3496"
+    },
+    {
+      "id": "80b0",
+      "slug": "remix"
+    },
+    {
+      "id": "2721",
+      "slug": "Vue test"
+    },
+    {
+      "id": "abd4",
+      "slug": "Test Vue"
+    },
+    {
+      "id": "3eee",
+      "slug": "angular"
+    },
+    {
+      "id": "4622",
+      "slug": "Astro"
+    },
+    {
+      "id": "98ad",
+      "slug": "Astro 2"
+    }
+  ]
+}
